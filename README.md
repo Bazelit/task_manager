@@ -5,7 +5,7 @@
 
 ## 🔗 Ссылка на репозиторий
 GitHub **[https://github.com/Bazelit/task_manager](https://github.com/Bazelit/task_manager)**  
-Ссылка на сайт **https://bazelit.pythonanywhere.com/****
+Ссылка на сайт **https://bazelit.pythonanywhere.com/**
 
 ## 📌 Описание проекта
 
