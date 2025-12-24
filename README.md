@@ -4,7 +4,8 @@
 Приложение реализовано на языке Python с использованием фреймворка Django и поддерживает концепцию прогрессивных веб-приложений (PWA).
 
 ## 🔗 Ссылка на репозиторий
-GitHub **[https://github.com/Bazelit/task_manager](https://github.com/Bazelit/task_manager)**
+GitHub **[https://github.com/Bazelit/task_manager](https://github.com/Bazelit/task_manager)**  
+Ссылка на сайт **https://bazelit.pythonanywhere.com/****
 
 ## 📌 Описание проекта
 
