@@ -1,0 +1,553 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Менеджер задач</title>
+    <link rel="manifest" href="{% static 'manifest.json' %}" />
+    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'icon-192.png' %}" />
+    <link rel="apple-touch-icon" sizes="512x512" href="{% static 'icon-512.png' %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0A84FF" />
+
+    <style>
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      :root {
+        --bg-light: #F2F2F7;
+        --bg-dark: #000000;
+        --card-light: #FFFFFF;
+        --card-dark: #1C1C1E;
+        --secondary-bg-light: #E5E5EA;
+        --secondary-bg-dark: #2C2C2E;
+        --text-light: #000000;
+        --text-dark: #FFFFFF;
+        --text-secondary-light: #8E8E93;
+        --text-secondary-dark: #8E8E93;
+        --accent: #0A84FF;
+        --danger: #FF3B30;
+        --success: #34C759;
+        --separator-light: #C6C6C8;
+        --separator-dark: #38383A;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+        transition: background 0.3s ease;
+        overscroll-behavior: none;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body.light {
+        background: var(--bg-light);
+        color: var(--text-light);
+      }
+
+      body.dark {
+        background: var(--bg-dark);
+        color: var(--text-dark);
+      }
+
+      .app {
+        max-width: 430px;
+        margin: auto;
+        padding: 0;
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 60px 20px 20px 20px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+
+      body.light header {
+        background: rgba(242, 242, 247, 0.8);
+      }
+
+      body.dark header {
+        background: rgba(0, 0, 0, 0.8);
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      header h1 {
+        font-size: 34px;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: -0.5px;
+      }
+
+      .theme-toggle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.2s ease;
+      }
+
+      body.light .theme-toggle {
+        background: var(--secondary-bg-light);
+      }
+
+      body.dark .theme-toggle {
+        background: var(--secondary-bg-dark);
+      }
+
+      .theme-toggle:active {
+        transform: scale(0.9);
+      }
+
+      .status-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      body.light .status-bar {
+        color: var(--text-secondary-light);
+      }
+
+      body.dark .status-bar {
+        color: var(--text-secondary-dark);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--success);
+        animation: pulse 2s infinite;
+      }
+
+      .status-dot.offline {
+        background: var(--danger);
+        animation: none;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      .content {
+        padding: 0 20px 30px 20px;
+      }
+
+      .input-section {
+        margin-bottom: 24px;
+      }
+
+      form {
+        position: relative;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 16px 70px 16px 16px;
+        font-size: 17px;
+        transition: all 0.2s ease;
+        outline: none;
+      }
+
+      body.light input[type="text"] {
+        background: var(--card-light);
+        color: var(--text-light);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      }
+
+      body.dark input[type="text"] {
+        background: var(--card-dark);
+        color: var(--text-dark);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      }
+
+      input[type="text"]:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(10, 132, 255, 0.3);
+      }
+
+      input::placeholder {
+        color: var(--text-secondary-light);
+      }
+
+      body.dark input::placeholder {
+        color: var(--text-secondary-dark);
+      }
+
+      .add-button {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      }
+
+      .add-button:active {
+        transform: translateY(-50%) scale(0.95);
+      }
+
+      .tasks-section h2 {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 12px 4px;
+        letter-spacing: -0.3px;
+      }
+
+      body.light .tasks-section h2 {
+        color: var(--text-light);
+      }
+
+      body.dark .tasks-section h2 {
+        color: var(--text-dark);
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .task-item-wrapper {
+        position: relative;
+        margin-bottom: 10px;
+        border-radius: 12px;
+      }
+
+      .task-item {
+        position: relative;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      body.light .task-item {
+        background: var(--card-light);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      body.dark .task-item {
+        background: var(--card-dark);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .checkbox {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+
+      .task-item.done .checkbox {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .checkbox::after {
+        content: "✓";
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        opacity: 0;
+        transform: scale(0);
+        transition: all 0.2s ease;
+      }
+
+      .task-item.done .checkbox::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .task-content {
+        flex: 1;
+        font-size: 17px;
+        line-height: 1.4;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .task-item.done .task-content {
+        text-decoration: line-through;
+        opacity: 0.5;
+      }
+
+      .task-delete-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: rgba(255, 59, 48, 0.1);
+        color: var(--danger);
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+      }
+
+      .task-delete-btn:active {
+        transform: scale(0.9);
+        background: rgba(255, 59, 48, 0.2);
+      }
+
+      .clear-all-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        background: rgba(255, 59, 48, 0.1);
+        color: var(--danger);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: all 0.2s ease;
+      }
+
+      .clear-all-btn:active {
+        transform: scale(0.98);
+        background: rgba(255, 59, 48, 0.2);
+      }
+
+      body.dark .clear-all-btn {
+        background: rgba(255, 59, 48, 0.15);
+      }
+
+      .task-item.removing {
+        animation: removeTask 0.3s ease forwards;
+      }
+
+      @keyframes removeTask {
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(-20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .task-item-wrapper {
+        animation: slideIn 0.3s ease;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        opacity: 0.5;
+      }
+
+      .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+      }
+
+      .empty-state-text {
+        font-size: 17px;
+        font-weight: 500;
+      }
+
+      body.light .empty-state-text {
+        color: var(--text-secondary-light);
+      }
+
+      body.dark .empty-state-text {
+        color: var(--text-secondary-dark);
+      }
+    </style>
+  </head>
+  <body class="dark">
+    <div class="app">
+      <header>
+        <div class="header-content">
+          <h1>Задачи</h1>
+          <button class="theme-toggle" id="themeToggle">🌙</button>
+        </div>
+        <div class="status-bar">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Проверка сети...</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="input-section">
+          <form method="post" action="{% url 'add_task' %}" id="taskForm">
+            {% csrf_token %}
+            <input 
+              type="text" 
+              name="title" 
+              placeholder="Новая задача" 
+              autocomplete="off"
+              id="taskInput"
+            />
+            <button type="submit" class="add-button">+</button>
+          </form>
+        </div>
+
+        <div class="tasks-section">
+          <h2>Мои задачи</h2>
+          <ul id="taskList">
+            {% for task in tasks %}
+            <li class="task-item-wrapper" data-task-id="{{ task.id }}">
+              <div class="task-item {% if task.is_done %}done{% endif %}">
+                <div class="checkbox" onclick="toggleTaskWithVibration('{% url 'toggle_task' task.id %}')"></div>
+                <div class="task-content" onclick="toggleTaskWithVibration('{% url 'toggle_task' task.id %}')">
+                  {{ task.title }}
+                </div>
+                <button class="task-delete-btn" onclick="deleteTask({{ task.id }}, event)">🗑️</button>
+              </div>
+            </li>
+            {% empty %}
+            <div class="empty-state">
+              <div class="empty-state-icon">📝</div>
+              <div class="empty-state-text">Нет задач. Добавьте первую!</div>
+            </div>
+            {% endfor %}
+          </ul>
+          
+          {% if tasks %}
+          <button class="clear-all-btn" onclick="clearAllTasks()">🗑️ Очистить все задачи</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("{% static 'service-worker.js' %}")
+          .then(reg => console.log("SW registered", reg))
+          .catch(err => console.log("SW registration failed", err));
+      }
+
+      function updateStatus() {
+        const dot = document.getElementById("statusDot");
+        const text = document.getElementById("statusText");
+        if (navigator.onLine) {
+          dot.classList.remove("offline");
+          text.textContent = "Онлайн";
+        } else {
+          dot.classList.add("offline");
+          text.textContent = "Офлайн";
+        }
+      }
+      window.addEventListener("online", updateStatus);
+      window.addEventListener("offline", updateStatus);
+      updateStatus();
+
+      const body = document.body;
+      const themeBtn = document.getElementById("themeToggle");
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      
+      body.className = savedTheme;
+      themeBtn.textContent = savedTheme === "dark" ? "🌙" : "☀️";
+
+      themeBtn.addEventListener("click", () => {
+        const newTheme = body.classList.contains("dark") ? "light" : "dark";
+        body.className = newTheme;
+        themeBtn.textContent = newTheme === "dark" ? "🌙" : "☀️";
+        localStorage.setItem("theme", newTheme);
+      });
+
+      function toggleTaskWithVibration(url) {
+        if (navigator.vibrate) {
+          navigator.vibrate(30);
+        }
+        location.href = url;
+      }
+
+      function deleteTask(taskId, event) {
+        event.stopPropagation();
+        
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+        
+        const wrapper = event.target.closest('.task-item-wrapper');
+        const taskItem = wrapper.querySelector('.task-item');
+        taskItem.classList.add('removing');
+        setTimeout(() => {
+          window.location.href = `/delete/${taskId}/`;
+        }, 300);
+      }
+
+      function clearAllTasks() {
+        if (confirm('Вы уверены, что хотите удалить все задачи?')) {
+          if (navigator.vibrate) {
+            navigator.vibrate(100);
+          }
+          
+          const taskWrappers = document.querySelectorAll('.task-item-wrapper');
+          taskWrappers.forEach((wrapper, index) => {
+            setTimeout(() => {
+              const taskItem = wrapper.querySelector('.task-item');
+              taskItem.classList.add('removing');
+            }, index * 50);
+          });
+          
+          setTimeout(() => {
+            window.location.href = '/clear_all/';
+          }, taskWrappers.length * 50 + 300);
+        }
+      }
+
+      const taskForm = document.getElementById('taskForm');
+      const taskInput = document.getElementById('taskInput');
+      
+      taskForm.addEventListener('submit', (e) => {
+        taskInput.blur();
+      });
+    </script>
+  </body>
+</html>
